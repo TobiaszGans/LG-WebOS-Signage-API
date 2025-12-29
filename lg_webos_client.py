@@ -15,6 +15,7 @@ Usage:
 import requests
 import hashlib
 import time
+import json
 from urllib3.exceptions import InsecureRequestWarning
 
 # Disable SSL warnings for self-signed certificates
@@ -178,7 +179,7 @@ class LGWebOSClient:
         Returns:
             dict: System information
         """
-        response = self._request('GET', '/api/system')
+        response = self._request('GET', '/config/getConfigs')
         return response.get('data') if response else None
     
     # Add more API methods below as you discover them
@@ -196,6 +197,86 @@ class LGWebOSClient:
     #     """
     #     response = self._request('GET/POST/PUT/DELETE', '/api/endpoint', data={'key': 'value'})
     #     return response.get('data') if response else None
+
+    # Storage Device API
+    def get_storage_list(self):
+        """
+        Get list of storage devices
+        
+        Returns:
+            list of dict: Storage device information
+        """
+        req_param = {
+            "deviceType":["internal signage","usb","sdcard"]
+        }
+
+        params = {
+            "reqParam": json.dumps(req_param)
+        }
+
+        response = self._request('GET', '/storage/list', params=params)
+        data = response.get('data')
+        payload = data.get('payload') if data else None
+        devices = payload.get('devices') if payload else None
+
+        return devices
+    
+    def get_storage_ids(self):
+        """
+        Get list of storage device IDs
+        
+        
+        Returns:
+            list of str: Storage device IDs
+        """
+        devices = self.get_storage_list()
+        if devices:
+            return [device.get('deviceId') for device in devices]
+        return []
+    
+    # Player API
+    def get_media(self, filters:list=None):
+        """
+        Get info on media files on the device
+        
+        Args:
+            filters (list of str): Media type filters (default: all types)
+            All types: "VIDEO","IMAGE","TEMPLATE","SUPER_SIGN","PLAY_LIST"
+
+        Returns:
+            List of dict: Media information
+        """
+        if filters is None:
+            filters = ["VIDEO","IMAGE","TEMPLATE","SUPER_SIGN","PLAY_LIST"]
+        storage_ids = self.get_storage_ids()
+
+        req_param = {
+            "from":"MEDIA",
+            "orderBy":"FILE_NAME",
+            "desc":False,
+            "limit":100,
+            "where":[
+                {"prop":"mediaType",
+                 "op":"=",
+                 "val":filters}
+            ],
+            "filter":[
+                {"prop":"udn",
+                 "op":"=",
+                 "val":storage_ids}
+            ],
+            "page":""
+        }
+        params = {
+            "reqParam": json.dumps(req_param)
+        }
+
+        response = self._request('GET', '/content/list', params=params)
+        data = response.get('data') if response else None
+        payload = data.get('payload') if data else None
+        results = payload.get('results') if payload else None
+
+        return results
 
 
 # Example usage

@@ -1,5 +1,7 @@
 # Enviorment
-.env/
+.venv/
+.env
+**__pycache__/
 
 # Reverse engineering files
 Received files/
