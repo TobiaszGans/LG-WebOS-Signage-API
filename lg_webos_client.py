@@ -6,7 +6,7 @@ A Python library for interacting with LG WebOS Signage displays
 Usage:
     from lg_webos_client import LGWebOSClient
     
-    client = LGWebOSClient("10.0.30.2", "your_password")
+    client = LGWebOSClient("10.0.30.2", "your_password", port=443)
     if client.login():
         system_info = client.get_system_info()
         print(system_info)
@@ -181,22 +181,6 @@ class LGWebOSClient:
         """
         response = self._request('GET', '/config/getConfigs')
         return response.get('data') if response else None
-    
-    # Add more API methods below as you discover them
-    # Example template:
-    # def method_name(self, param1, param2=None):
-    #     """
-    #     Description of what this method does
-    #     
-    #     Args:
-    #         param1: Description
-    #         param2: Description (optional)
-    #     
-    #     Returns:
-    #         dict: Description of return value
-    #     """
-    #     response = self._request('GET/POST/PUT/DELETE', '/api/endpoint', data={'key': 'value'})
-    #     return response.get('data') if response else None
 
     # Storage Device API
     def get_storage_list(self):
@@ -277,6 +261,35 @@ class LGWebOSClient:
         results = payload.get('results') if payload else None
 
         return results
+    
+    def play_media(self, type:str, src:str):
+        """
+        Play a media file or playlist
+        
+        Args:
+            type (str): Media type returned in get media under parameter "mediaType"
+            src (str): Source path returned in get media under parameter "fullPath"
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        
+        req_param = {
+            "id":"com.webos.app.dsmp",
+            "params":{
+                "type":type,
+                "src":src
+            }
+        }
+
+        params = {
+            "reqParam": json.dumps(req_param)
+        }
+        
+        response = self._request('PUT', '/content/play/dsmp', params=params)
+        if response and response.get('status') == 200:
+            return True
+        return False
 
 
 # Example usage
