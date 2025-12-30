@@ -1,6 +1,7 @@
 # LG WebOS Signage API Client
 
 A Python library for automating and controlling LG WebOS Signage displays via their REST API.
+\nPlease note this document discusses only the lg_webos_client library. The legacy and unified files are to launch playlists only as I need
 
 ## Quick Start
 

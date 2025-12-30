@@ -1,36 +1,27 @@
 from dotenv import load_dotenv
 import os, json
-from lg_webos_client import LGWebOSClient
+from lg_webos_unified_client import LGWebOSClient
 
 
 def main():
     load_dotenv(override=True)
-    IP = os.getenv("IP_ADDRESS")
+    HOST = os.getenv("HOST")
     PORT = int(os.getenv("PORT"))
     PASSWORD = os.getenv("PASSWORD")
-
-    client = LGWebOSClient(
-        host=IP,
-        password=PASSWORD, 
-        port=PORT
-    )
-
-    if client.login():
-        print("Login successful.")
-    else:
-        print("Login failed.")
-        exit()
-
-
-    media = client.get_media()
     
-    sunday_playlist = next((obj for obj in media if obj['fileName'] == "Niedziela.pls"), None)
+    # Create unified client (auto-detects display type)
+    client = LGWebOSClient(HOST, PASSWORD, port=PORT)
     
-    play_sunday = client.play_media(type=sunday_playlist['mediaType'], src=sunday_playlist['fullPath'])
-    if play_sunday:
-        print("Playing Sunday playlist.")
+    if client.login(verbose=True):
+        print(f"\n✓ Connected to {client.display_type} display\n")
+        
+        # Play a playlist (works on both types)
+        if client.play_playlist("Niedziela.pls", verbose=True):
+            print("✓ Playlist started!")
+        
     else:
-        print("Failed to play Sunday playlist.")
+        print("✗ Login failed")
+
 
 
 if __name__ == "__main__":
